@@ -1,0 +1,140 @@
+.script-form {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.label-num {
+  color: var(--accent);
+  font-size: 10px;
+}
+
+.form-textarea {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--text);
+  padding: 14px 16px;
+  font-size: 15px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+  line-height: 1.6;
+}
+
+.form-textarea:focus {
+  border-color: var(--accent);
+}
+
+.form-textarea::placeholder {
+  color: rgba(240,237,230,0.2);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 6px 14px;
+  border-radius: 2px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.5px;
+  transition: all 0.15s;
+}
+
+.pill:hover {
+  border-color: rgba(255,60,0,0.4);
+  color: var(--text);
+}
+
+.pill.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.generate-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 18px 32px;
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.2s;
+  border-radius: 2px;
+  margin-top: 8px;
+}
+
+.generate-btn:hover:not(:disabled) {
+  background: #ff5520;
+  transform: translateY(-2px);
+}
+
+.generate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.generate-btn.loading {
+  background: #333;
+}
+
+.btn-icon { font-size: 18px; }
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+  .script-form { padding: 20px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .generate-btn { font-size: 18px; padding: 16px; }
+}
