@@ -107,7 +107,8 @@ export async function POST(request) {
 
   if (!response.ok) {
     console.error('Anthropic API error:', response.status, data)
-    return json(502, { error: `The AI service returned an error (${response.status}). Try again in a moment.` })
+    const reason = typeof data?.error?.message === 'string' ? `: ${data.error.message}` : '.'
+    return json(502, { error: `The AI service returned an error (${response.status})${reason}` })
   }
 
   // Newer models can return thinking blocks before the answer, so pick the text block.
