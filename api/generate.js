@@ -3,7 +3,12 @@
 // The Anthropic API key lives only here, read from the ANTHROPIC_API_KEY
 // environment variable on the server. The browser sends the form fields;
 // this function validates them, builds the prompt and calls Claude.
+//
+// Demo mode: with no ANTHROPIC_API_KEY set, or if the AI call fails, the
+// function returns a template-based sample script (src/demoScript.js) marked
+// with demo: true, so the public site works without spending anything.
 import { PLATFORMS, DURATIONS, TONES, HOOKS, LANGUAGES, TOPIC_MAX_LENGTH } from '../src/options.js'
+import { buildDemoScript } from '../src/demoScript.js'
 
 const MODEL = process.env.ANTHROPIC_MODEL || 'claude-sonnet-5-5'
 
@@ -66,12 +71,6 @@ Return ONLY this JSON structure:
 }
 
 export async function POST(request) {
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) {
-    console.error('ANTHROPIC_API_KEY is not set')
-    return json(500, { error: 'The server is missing its API key. Add ANTHROPIC_API_KEY in the Vercel project settings.' })
-  }
-
   let body
   try {
     body = await request.json()
@@ -82,33 +81,37 @@ export async function POST(request) {
   const problem = validate(body)
   if (problem) return json(400, { error: problem })
 
-  let response
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) return json(200, buildDemoScript(body))
+
   try {
-    response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 4000,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: buildUserPrompt(body) }],
-      }),
-    })
+    return json(200, await generateWithClaude(apiKey, body))
   } catch (err) {
-    console.error('Could not reach the Anthropic API:', err)
-    return json(502, { error: 'Could not reach the AI service. Try again in a moment.' })
+    // Billing, outage or a malformed answer: log the reason, show the sample instead.
+    console.error('AI generation failed, serving demo script:', err.message)
+    return json(200, buildDemoScript(body))
   }
+}
+
+async function generateWithClaude(apiKey, body) {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 4000,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: buildUserPrompt(body) }],
+    }),
+  })
 
   const data = await response.json().catch(() => null)
-
   if (!response.ok) {
-    console.error('Anthropic API error:', response.status, data)
-    const reason = typeof data?.error?.message === 'string' ? `: ${data.error.message}` : '.'
-    return json(502, { error: `The AI service returned an error (${response.status})${reason}` })
+    throw new Error(`Anthropic API ${response.status}: ${data?.error?.message || 'no details'}`)
   }
 
   // Newer models can return thinking blocks before the answer, so pick the text block.
@@ -116,9 +119,8 @@ export async function POST(request) {
   const clean = text.replace(/```json|```/g, '').trim()
 
   try {
-    return json(200, JSON.parse(clean))
+    return JSON.parse(clean)
   } catch {
-    console.error('Model did not return valid JSON:', clean.slice(0, 500))
-    return json(502, { error: 'The script came back in an unexpected format. Generate it again.' })
+    throw new Error(`Model did not return valid JSON: ${clean.slice(0, 200)}`)
   }
 }

@@ -56,13 +56,22 @@ export default function ScriptOutput({ script, loading }) {
       {/* Top bar */}
       <div className="output-topbar">
         <div className="output-title">
-          <span className="out-label">GENERATED SCRIPT</span>
+          <span className="out-label">{script.demo ? 'SAMPLE SCRIPT' : 'GENERATED SCRIPT'}</span>
         </div>
-        <div className="viral-score" style={{ '--score-color': scoreColor }}>
-          <span className="score-num">{score}</span>
-          <span className="score-label">VIRAL SCORE</span>
-        </div>
+        {!script.demo && (
+          <div className="viral-score" style={{ '--score-color': scoreColor }}>
+            <span className="score-num">{score}</span>
+            <span className="score-label">VIRAL SCORE</span>
+          </div>
+        )}
       </div>
+
+      {script.demo && (
+        <p className="demo-note" role="note">
+          Demo mode: this sample is built from a template using your topic. Live AI generation is turned off on this site.
+          To run it with Claude, clone the <a href="https://github.com/gleimbek/scriptgen-ai" target="_blank" rel="noreferrer">repo</a> and add your own API key.
+        </p>
+      )}
 
       {/* Hook highlight */}
       <div className="hook-banner">

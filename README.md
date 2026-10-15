@@ -45,6 +45,12 @@ ANTHROPIC_API_KEY=your_key_here
 
 > ⚠️ Don't prefix the key with `VITE_`. Vite copies every `VITE_` variable into the public JavaScript bundle, where anyone can read it. `.env` is already in `.gitignore`.
 
+### Demo mode (no key, no cost)
+
+If `ANTHROPIC_API_KEY` isn't set, the app runs in demo mode: `api/generate.js` returns a sample script built from templates in `src/demoScript.js`, and the page shows a "Demo mode" notice. It also falls back to the sample if the Claude call fails (for example, no credit left), so the public site never shows a billing error.
+
+The live site at scriptgen-ai-zeta.vercel.app runs in demo mode.
+
 ### 4. Run locally
 
 ```bash
@@ -56,7 +62,7 @@ Open `http://localhost:5173`. The Vite dev server also serves `/api/generate`, s
 ## 📦 Deploy to Vercel
 
 1. Import the repo in Vercel (framework preset: Vite).
-2. In **Settings → Environment Variables**, add `ANTHROPIC_API_KEY`.
+2. In **Settings → Environment Variables**, add `ANTHROPIC_API_KEY`. Skip this step to deploy in demo mode.
 3. Deploy. Vercel builds the site with `npm run build` and runs `api/generate.js` as a function.
 
 GitHub Pages can't run the server function, so it isn't a deploy target for this app.
@@ -83,6 +89,7 @@ scriptgen-ai/
 │   │   ├── ScriptForm.jsx / ScriptForm.css
 │   │   └── ScriptOutput.jsx / ScriptOutput.css
 │   ├── options.js         ← form choices shared with the server
+│   ├── demoScript.js      ← sample scripts for demo mode
 │   ├── App.jsx / App.css
 │   ├── main.jsx
 │   └── index.css
