@@ -33,25 +33,17 @@ npm install
 
 ### 3. Set up your API key
 
-This app calls the Anthropic Claude API. You need a proxy or backend to keep your key secure.
+The browser never sees the key. The form posts to `/api/generate`, a serverless function in `api/generate.js` that validates the fields, builds the prompt and calls Claude with the key from the server's environment.
 
-For local development, create a `.env` file:
+For local development, create a `.env` file in the project root:
 
 ```bash
-VITE_ANTHROPIC_API_KEY=your_key_here
+ANTHROPIC_API_KEY=your_key_here
+# Optional: use a different model (default: claude-sonnet-5-5)
+# ANTHROPIC_MODEL=claude-haiku-5-5
 ```
 
-> ⚠️ **Never commit your API key to GitHub.** Add `.env` to `.gitignore`.
-
-Then update `src/App.jsx` to use:
-```js
-headers: {
-  'Content-Type': 'application/json',
-  'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY,
-  'anthropic-version': '2023-06-01',
-  'anthropic-dangerous-direct-browser-access': 'true',
-}
-```
+> ⚠️ Don't prefix the key with `VITE_`. Vite copies every `VITE_` variable into the public JavaScript bundle, where anyone can read it. `.env` is already in `.gitignore`.
 
 ### 4. Run locally
 
@@ -59,42 +51,23 @@ headers: {
 npm run dev
 ```
 
-Open `http://localhost:5173`
+Open `http://localhost:5173`. The Vite dev server also serves `/api/generate`, so you don't need the Vercel CLI.
 
-## 📦 Build & Deploy
+## 📦 Deploy to Vercel
 
-```bash
-npm run build
-```
+1. Import the repo in Vercel (framework preset: Vite).
+2. In **Settings → Environment Variables**, add `ANTHROPIC_API_KEY`.
+3. Deploy. Vercel builds the site with `npm run build` and runs `api/generate.js` as a function.
 
-### Deploy to GitHub Pages
+GitHub Pages can't run the server function, so it isn't a deploy target for this app.
 
-1. Install gh-pages:
-```bash
-npm install --save-dev gh-pages
-```
-
-2. Add to `package.json`:
-```json
-{
-  "homepage": "https://gleimbek.github.io/scriptgen-ai",
-  "scripts": {
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
-  }
-}
-```
-
-3. Deploy:
-```bash
-npm run deploy
-```
+To keep a public demo from running up your bill, set a monthly spend limit for the key's workspace in the Claude Console.
 
 ## 🛠️ Tech Stack
 
 - **React 18** + **Vite 5**
 - **Framer Motion** for animations
-- **Claude claude-sonnet-4-20250514** API (Anthropic)
+- **Claude API** (`claude-sonnet-5-5`), called from a Vercel serverless function
 - **Google Fonts** — Bebas Neue + DM Sans + JetBrains Mono
 - Zero external UI libraries — 100% custom CSS
 
@@ -102,11 +75,14 @@ npm run deploy
 
 ```
 scriptgen-ai/
+├── api/
+│   └── generate.js        ← server function: validation, prompt, Claude call
 ├── src/
 │   ├── components/
 │   │   ├── Header.jsx / Header.css
 │   │   ├── ScriptForm.jsx / ScriptForm.css
 │   │   └── ScriptOutput.jsx / ScriptOutput.css
+│   ├── options.js         ← form choices shared with the server
 │   ├── App.jsx / App.css
 │   ├── main.jsx
 │   └── index.css

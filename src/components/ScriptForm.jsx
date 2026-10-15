@@ -1,11 +1,6 @@
 import { useState } from 'react'
 import './ScriptForm.css'
-
-const PLATFORMS = ['TikTok', 'Instagram Reels', 'YouTube Shorts']
-const DURATIONS = ['15', '30', '60', '90']
-const TONES = ['Funny & Entertaining', 'Educational & Informative', 'Inspirational', 'Dramatic & Emotional', 'Controversial & Bold', 'Casual & Authentic']
-const HOOKS = ['Question Hook', 'Shocking Fact', 'Bold Statement', 'Story Opening', 'Challenge/Dare', 'Relatability Hook']
-const LANGUAGES = ['English', 'Spanish', 'Portuguese', 'French']
+import { PLATFORMS, DURATIONS, TONES, HOOKS, LANGUAGES, TOPIC_MAX_LENGTH } from '../options.js'
 
 export default function ScriptForm({ onGenerate, loading }) {
   const [form, setForm] = useState({
@@ -38,6 +33,7 @@ export default function ScriptForm({ onGenerate, loading }) {
           value={form.topic}
           onChange={e => set('topic', e.target.value)}
           rows={3}
+          maxLength={TOPIC_MAX_LENGTH}
           required
         />
       </div>

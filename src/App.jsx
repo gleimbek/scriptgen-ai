@@ -14,74 +14,24 @@ export default function App() {
     setError(null)
     setScript(null)
 
-    const { topic, platform, duration, tone, hook, language } = formData
-
-    const durationMap = {
-      '15': '15 seconds (approx 35-40 words spoken)',
-      '30': '30 seconds (approx 70-80 words spoken)',
-      '60': '60 seconds (approx 140-160 words spoken)',
-      '90': '90 seconds (approx 200-220 words spoken)',
-    }
-
-    const contentSeconds = Math.max(5, parseInt(duration) - 15)
-
-    const systemPrompt = `You are an expert short-form video scriptwriter specializing in viral TikTok and Instagram Reels content. Always respond with a valid JSON object and nothing else. No markdown, no backticks, just pure JSON.`
-
-    const userPrompt = `Write a short video script.
-Topic: ${topic}
-Platform: ${platform}
-Duration: ${durationMap[duration]}
-Tone: ${tone}
-Hook style: ${hook}
-Language: ${language}
-
-Return ONLY this JSON structure:
-{
-  "hook": "opening line to stop the scroll",
-  "sections": [
-    { "label": "HOOK", "text": "...", "seconds": 3 },
-    { "label": "SETUP", "text": "...", "seconds": 8 },
-    { "label": "CONTENT", "text": "...", "seconds": ${contentSeconds} },
-    { "label": "CTA", "text": "...", "seconds": 4 }
-  ],
-  "fullScript": "complete script as one text",
-  "caption": "caption with hashtags",
-  "tips": ["tip1", "tip2", "tip3"],
-  "estimatedViralScore": 85,
-  "viralReason": "why this will perform well"
-}`
-
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      // The prompt and the API key live on the server (api/generate.js).
+      const response = await fetch('/api/generate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1500,
-          system: systemPrompt,
-          messages: [{ role: 'user', content: userPrompt }],
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       })
 
+      const data = await response.json().catch(() => null)
+
       if (!response.ok) {
-        const errData = await response.json()
-        console.error('API Error:', errData)
-        setError(`API Error: ${errData.error?.message || response.status}`)
+        setError(data?.error || `Something went wrong (${response.status}). Try again.`)
         return
       }
 
-      const data = await response.json()
-      const raw = data.content?.[0]?.text || ''
-      const clean = raw.replace(/```json|```/g, '').trim()
-      const parsed = JSON.parse(clean)
-      setScript(parsed)
+      setScript(data)
     } catch (err) {
-      setError('Failed to generate script. Please try again.')
+      setError('Could not reach the server. Check your connection and try again.')
       console.error(err)
     } finally {
       setLoading(false)
